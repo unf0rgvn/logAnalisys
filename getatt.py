@@ -2,15 +2,14 @@ import fnmatch
 import re
 from datetime import datetime
 from babel.dates import format_datetime
+import argparse
+from colorama import Fore, Style, init
+
 
 nList = []  # Raw log in list format.
-#suspect = '' # All suspected ip addresses.
 tool = [] # Tools that were used.
 starEnd = []
 
-# How many times the tools appeared.
-# This is a test.
-# New line
 
 def getData(file):
     sus = []
@@ -32,6 +31,9 @@ def getData(file):
             tool.append(a)
             sus.append(transform[0])
             starEnd.append(transform[3])
+
+    if tool == []:
+        return False
 
     if sus.count(sus[0]) == len(sus):
         suspect = str(set(sus))
@@ -64,20 +66,28 @@ def usedTools():
     return nmap_C, nikto_C, other
 
 def getTime():
-    start = format_datetime(datetime.strptime(starEnd[0].replace('[',''), '%d/%b/%Y:%H:%M:%S'), "d/MM/YYYY:HH:mm:s")
-    end = format_datetime(datetime.strptime(starEnd[-1].replace('[',''), '%d/%b/%Y:%H:%M:%S'), "d/MM/YYYY:HH:mm:s")
+    start = format_datetime(datetime.strptime(starEnd[0].replace('[',''), '%d/%b/%Y:%H:%M:%S'), "dd/MM/YYYY:HH:mm:s")
+    end = format_datetime(datetime.strptime(starEnd[-1].replace('[',''), '%d/%b/%Y:%H:%M:%S'), "dd/MM/YYYY:HH:mm:s")
     return start, end
 
 
 def main():
-    file = input("Please, insert the name of your file: ")
-    suspect = getData(file)
+    init(autoreset=True)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("file", help="The log file to analyse.")
+    args = parser.parse_args()
+
+    suspect = getData(args.file)
+    if not suspect:
+        print(f"\n{Style.BRIGHT}{Fore.GREEN}No threats was found.")
+        return 1
+
     nmap_C,nikto_C, other = usedTools()
     start, end = getTime()
 
-    print(f"Suspect IP Address: {suspect}")
-    print(f"The Nmap tool was used {nmap_C} times, and Nikto {nikto_C} times.")
-    print(f"The attack started in {start} and ended in {end}.")
+    print(f"\n{Style.BRIGHT}Suspect IP Address: {Fore.RED}{Style.BRIGHT}{suspect}")
+    print(f"{Style.BRIGHT}The {Style.BRIGHT}Nmap tool was used {Fore.RED}{nmap_C}{Fore.RESET}{Style.BRIGHT} times and {Style.BRIGHT}Nikto {Fore.RED}{nikto_C}{Fore.RESET} times.")
+    print(f"{Style.BRIGHT}The attack started in {Fore.YELLOW}{start}{Fore.RESET} and ended in {Fore.YELLOW}{end}{Fore.RESET}.")
 
 
 if __name__ == '__main__':
