@@ -66,6 +66,32 @@ class LogAnalyser:
             if "sqlmap" in tool_user_agent_string.lower():
                 other_count+=1
         return nmap_count,nikto_count,other_count
+    
+    def get_attack_time_range(self):
+        
+        if not self.timestamps:
+            return "N/A", "N/A"
+        
+        try:
+            parsed_datatimes = []
+            for ts_str in self.timestamps:
+                parsed_datatimes.append(datetime.strptime(ts_str, '%d/%b/%Y:%H:%M:%S'))
+
+            sorted_datetimes = sorted(parsed_datatimes)
+
+            start_datetime = sorted_datetimes[0]
+            end_datetime = sorted_datetimes[1]
+
+            start_formatted = format_datetime(start_datetime, format="dd/MM/yyyy:HH:mm:ss")
+            end_formatted =  format_datetime(end_datetime, format="dd/MM/yyyy:HH:mm:ss")
+
+            return start_formatted, end_formatted
+        except ValueError as e:
+            print(f"Erro ao parsear data/hora: {e}. Verifique o formato no arquivo de log.")
+            return "Erro de formato", "Erro de formato"
+        except IndexError:
+            # Caso a lista de timestamps esteja vazia.
+            return "N/A", "N/A" 
 
 def main():
     init(autoreset=True)
@@ -87,14 +113,15 @@ def main():
         return 1
 
     nmap_count,nikto_count, other_count = analyzer.count_used_tools()
-    # start, end = getTime()
+    start_time, end_time = analyzer.get_attack_time_range()
 
     print(f"\n{Style.BRIGHT}IP suspeito: {Fore.RED}{Style.BRIGHT}{suspect_ip}")
     print(f"{Style.BRIGHT}A ferramenta {Style.BRIGHT}Nmap foi usada {Fore.RED}{nmap_count}{Fore.RESET}{Style.BRIGHT} vezes e {Style.BRIGHT}Nikto {Fore.RED}{nikto_count}{Fore.RESET} vezes.")
     if other_count > 0:
         print(f"{Style.BRIGHT}Outras ferramentas (como {Fore.RED}sqlmap{Fore.RESET}{Style.BRIGHT}) foram usadas {Fore.RED}{other_count}{Fore.RESET} vezes.")
-    #print(f"{Style.BRIGHT}The attack started in {Fore.YELLOW}{start}{Fore.RESET} and ended in {Fore.YELLOW}{end}{Fore.RESET}.")
-
+    print(f"{Style.BRIGHT}O ataque começou em {Fore.YELLOW}{start_time}{Fore.RESET} e terminou em {Fore.YELLOW}{end_time}{Fore.RESET}.")
+    
+    return 0
 
 if __name__ == '__main__':
     import sys
