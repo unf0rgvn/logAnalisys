@@ -45,6 +45,27 @@ class LogAnalyser:
         except Exception as e:
             print(f"Erro inesperado ao carregar ou parsear o arquivo de log: {e}")
             raise
+    
+    def get_suspect_ip(self):
+
+        if not self.suspect_ips:
+            return ""
+        
+        return list(self.suspect_ips)[0]
+    
+    def count_used_tools(self):
+        nmap_count = 0
+        nikto_count = 0
+        other_count = 0
+
+        for tool_user_agent_string in self.used_tools_raw:
+            if "nmap" in tool_user_agent_string.lower():
+                nmap_count+=1
+            if "nikto" in tool_user_agent_string.lower():
+                nikto_count+=1
+            if "sqlmap" in tool_user_agent_string.lower():
+                other_count+=1
+        return nmap_count,nikto_count,other_count
 
 def main():
     init(autoreset=True)
@@ -59,16 +80,20 @@ def main():
     except Exception as e:
         return 1
 
+    suspect_ip = analyzer.get_suspect_ip()
+
     if not analyzer.suspect_ips:
         print(f"\n{Style.BRIGHT}{Fore.GREEN}Nenhuma ameaça foi encontrada no log.")
         return 1
 
-    # nmap_C,nikto_C, other = usedTools()
+    nmap_count,nikto_count, other_count = analyzer.count_used_tools()
     # start, end = getTime()
 
-    # print(f"\n{Style.BRIGHT}Suspect IP Address: {Fore.RED}{Style.BRIGHT}{suspect}")
-    # print(f"{Style.BRIGHT}The {Style.BRIGHT}Nmap tool was used {Fore.RED}{nmap_C}{Fore.RESET}{Style.BRIGHT} times and {Style.BRIGHT}Nikto {Fore.RED}{nikto_C}{Fore.RESET} times.")
-    # print(f"{Style.BRIGHT}The attack started in {Fore.YELLOW}{start}{Fore.RESET} and ended in {Fore.YELLOW}{end}{Fore.RESET}.")
+    print(f"\n{Style.BRIGHT}IP suspeito: {Fore.RED}{Style.BRIGHT}{suspect_ip}")
+    print(f"{Style.BRIGHT}A ferramenta {Style.BRIGHT}Nmap foi usada {Fore.RED}{nmap_count}{Fore.RESET}{Style.BRIGHT} vezes e {Style.BRIGHT}Nikto {Fore.RED}{nikto_count}{Fore.RESET} vezes.")
+    if other_count > 0:
+        print(f"{Style.BRIGHT}Outras ferramentas (como {Fore.RED}sqlmap{Fore.RESET}{Style.BRIGHT}) foram usadas {Fore.RED}{other_count}{Fore.RESET} vezes.")
+    #print(f"{Style.BRIGHT}The attack started in {Fore.YELLOW}{start}{Fore.RESET} and ended in {Fore.YELLOW}{end}{Fore.RESET}.")
 
 
 if __name__ == '__main__':
