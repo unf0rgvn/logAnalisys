@@ -4,7 +4,7 @@ from babel.dates import format_datetime
 import argparse
 from colorama import Fore, Style, init
 
-class LogAnalyser:
+class LogAnalyzer:
     """
     Classe para analisar logs, extraindo informações sobre IPs
     e ferramentas utilizadas.
@@ -47,7 +47,6 @@ class LogAnalyser:
                             self.used_tools_raw.append(tool_user_agent)
                             self.timestamps.append(raw_timestamp)
         except FileNotFoundError:
-            print(f"Erro: Arquivo {self.log_file_path} não encontrado.")
             raise
         except Exception as e:
             print(f"Erro inesperado ao carregar ou parsear o arquivo de log: {e}")
@@ -102,7 +101,7 @@ class LogAnalyser:
             sorted_datetimes = sorted(parsed_datatimes)
 
             start_datetime = sorted_datetimes[0]
-            end_datetime = sorted_datetimes[1]
+            end_datetime = sorted_datetimes[-1]
 
             start_formatted = format_datetime(start_datetime, format="dd/MM/yyyy:HH:mm:ss")
             end_formatted =  format_datetime(end_datetime, format="dd/MM/yyyy:HH:mm:ss")
@@ -121,11 +120,14 @@ def main():
     args = parser.parse_args()
 
     try:
-        analyzer = LogAnalyser(args.file)
+        analyzer = LogAnalyzer(args.file)
     except FileNotFoundError: # Captura a exceção específica para arquivo não encontrado
-        return 1
+        import sys
+        print(f"Erro: Arquivo '{args.file}' não encontrado.")
+        sys.exit(1)
     except Exception as e: # Captura outras exceções
-        return 1
+        import sys
+        sys.exit(1)
 
     suspect_ip = analyzer.get_suspect_ip()
 
