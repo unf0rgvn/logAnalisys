@@ -1,13 +1,7 @@
 import pytest
 from unittest.mock import mock_open
-import sys # Para simular sys.exit
-
-# Importe a classe LogAnalyzer do seu arquivo principal (getatt.py)
+import sys
 from getatt import LogAnalyzer, main # Importa main também para o teste de sys.exit
-
-# --- Cenários de Conteúdo de Log Mockado ---
-# Os mocks de conteúdo podem ser definidos fora das funções de teste
-# ou mesmo como fixtures, mas como constantes globais aqui funciona bem.
 
 # Cenário 1: Arquivo de log com dados de Nmap, Nikto e sqlmap
 MOCK_LOG_CONTENT_1 = """
